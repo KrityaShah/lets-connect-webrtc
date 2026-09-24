@@ -1011,16 +1011,6 @@
     load-esm "1.0.3"
     tslib "2.8.1"
 
-"@nestjs/config@^12.0.1":
-  version "12.0.1"
-  resolved "https://registry.yarnpkg.com/@nestjs/config/-/config-12.0.1.tgz#205d6c0e217636707068f4f504d826eb907f17d6"
-  integrity sha512-pxqEtULFi4qXda0TqyR2YFq7o4UoRa7h4K5H0lgFuBMrUGr6x6VVldaJJrowFyh4uvp8dNq9Mie3T+l+uEOTfw==
-  dependencies:
-    "@standard-schema/spec" "1.1.0"
-    dotenv "18.0.3"
-    dotenv-expand "13.0.0"
-    es-toolkit "1.52.0"
-
 "@nestjs/core@^11.0.1":
   version "11.2.6"
   resolved "https://registry.yarnpkg.com/@nestjs/core/-/core-11.2.6.tgz#2235caf48e6fd6a93c829baf08a41e80a309c420"
@@ -1043,10 +1033,10 @@
     path-to-regexp "8.4.2"
     tslib "2.8.1"
 
-"@nestjs/platform-socket.io@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@nestjs/platform-socket.io/-/platform-socket.io-12.1.0.tgz#5351f27a66946c2e7847e417392119b25be4051e"
-  integrity sha512-Ld/gU/EyrIzd/UTYorrF/ZZHuidnYt1iPR+Sw3CYT5rK6TRiJ/LjPbRC86dH3pH/WJ/uGx6zZ4uIlByLYVg5UQ==
+"@nestjs/platform-socket.io@^11":
+  version "11.2.6"
+  resolved "https://registry.yarnpkg.com/@nestjs/platform-socket.io/-/platform-socket.io-11.2.6.tgz#0f2c0964904b83d9d21076151a2282f3d1e8f8a7"
+  integrity sha512-cCsmJkXh80Y46GOFU53jKFhDIDEuQJGnhxb5EwVNtx/uNizniBj4q1WoP/AehxeSe9mkmpQAyQ02A7tuqCLU9A==
   dependencies:
     socket.io "4.8.3"
     tslib "2.8.1"
@@ -1069,10 +1059,10 @@
   dependencies:
     tslib "2.8.1"
 
-"@nestjs/websockets@^12.1.0":
-  version "12.1.0"
-  resolved "https://registry.yarnpkg.com/@nestjs/websockets/-/websockets-12.1.0.tgz#d33de101ff321523c100cfc4143702fbd14311cc"
-  integrity sha512-GHNIRP47ySf09vgo0ZjuF70J54YJo4eN+6yd4xYR2b48bAhB8ROdM/EEZJMN4BZP9yJ3rgcE5h57JPfTyExjJg==
+"@nestjs/websockets@^11":
+  version "11.2.6"
+  resolved "https://registry.yarnpkg.com/@nestjs/websockets/-/websockets-11.2.6.tgz#7a346674a43cfceeed05422485e04bfe74a64fb2"
+  integrity sha512-u3CwdDDlfhYEbbcmNIdrf9pNOAcf5KTdDlxdJYM8K0LGGzK5y4vZwMyA6FuqmbxHln/+xgRAyUbDsjq8nntXjg==
   dependencies:
     iterare "1.2.1"
     object-hash "3.0.0"
@@ -1144,11 +1134,6 @@
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/@socket.io/component-emitter/-/component-emitter-3.1.2.tgz#821f8442f4175d8f0467b9daf26e3a18e2d02af2"
   integrity sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==
-
-"@standard-schema/spec@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@standard-schema/spec/-/spec-1.1.0.tgz#a79b55dbaf8604812f52d140b2c9ab41bc150bb8"
-  integrity sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==
 
 "@swc/cli@^0.6.0":
   version "0.6.0"
@@ -2673,23 +2658,6 @@ diff@^4.0.1:
   resolved "https://registry.yarnpkg.com/diff/-/diff-4.0.4.tgz#7a6dbfda325f25f07517e9b518f897c08332e07d"
   integrity sha512-X07nttJQkwkfKfvTPG/KSnE2OMdcUCao6+eXF3wmnIQRn2aPAHH3VxDbDOdegkd6JbPsXqShpvEOHfAT+nCNwQ==
 
-dotenv-expand@13.0.0:
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/dotenv-expand/-/dotenv-expand-13.0.0.tgz#e3bb68c3c1b59b015cda83d9a64efed6bb52242b"
-  integrity sha512-aBfBS8eYIeXmpHI9ThIlA7/WLq+SLt18iXUZhb52rW89QLKQFoIpPG1bPeewoPZsTyjSSO3T7234FBVUM1V2rA==
-  dependencies:
-    dotenv "^17.4.2"
-
-dotenv@18.0.3:
-  version "18.0.3"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-18.0.3.tgz#b631bd444652cd971357123dc2342976589467ab"
-  integrity sha512-/8CJTyL817qPnfbQrJgOEcrU3fDrJkRIoXBE566wHuvIXKOCHUZhPqGPbCPi9SogjdGnreF0TlvnTgK6J/8zpA==
-
-dotenv@^17.4.2:
-  version "17.4.2"
-  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-17.4.2.tgz#c07e54a746e11eba021dd9e1047ced5afdc1c034"
-  integrity sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==
-
 dunder-proto@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/dunder-proto/-/dunder-proto-1.0.1.tgz#d7ae667e1dc83482f8b70fd0f6eefc50da30f58a"
@@ -2723,6 +2691,17 @@ encodeurl@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/encodeurl/-/encodeurl-2.0.0.tgz#7b8ea898077d7e409d3ac45474ea38eaf0857a58"
   integrity sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==
+
+engine.io-client@~6.6.1:
+  version "6.6.6"
+  resolved "https://registry.yarnpkg.com/engine.io-client/-/engine.io-client-6.6.6.tgz#8a8f1e451b1f6d4acf413305445e42133d1cbe9a"
+  integrity sha512-iY6QdftLQ9pyiPoX082bpf/u1UewnOaJrtJIF9T0++QB34lZrj0uP+Q/bj8AlUsAxqhnkTV2BS8SBZSxOmoV5Q==
+  dependencies:
+    "@socket.io/component-emitter" "~3.1.0"
+    debug "~4.4.1"
+    engine.io-parser "~5.2.1"
+    ws "~8.21.0"
+    xmlhttprequest-ssl "~2.1.1"
 
 engine.io-parser@~5.2.1:
   version "5.2.3"
@@ -2790,11 +2769,6 @@ es-set-tostringtag@^2.1.0:
     get-intrinsic "^1.2.6"
     has-tostringtag "^1.0.2"
     hasown "^2.0.2"
-
-es-toolkit@1.52.0:
-  version "1.52.0"
-  resolved "https://registry.yarnpkg.com/es-toolkit/-/es-toolkit-1.52.0.tgz#71eaf1a8b18834ef77637eccbb885ba4c03cd6dd"
-  integrity sha512-XTNEJQh1tY1ZJVcf6ayP/2n4ZPyaHlW2FWs7xvw5ddPuhUVjLD3olQVQS7kf58JbAB48iL0uL/jerTrjtV3lDA==
 
 escalade@^3.1.1, escalade@^3.2.0:
   version "3.2.0"
@@ -5031,6 +5005,16 @@ socket.io-adapter@~2.5.2:
     debug "~4.4.1"
     ws "~8.21.0"
 
+socket.io-client@^4.8.3:
+  version "4.8.3"
+  resolved "https://registry.yarnpkg.com/socket.io-client/-/socket.io-client-4.8.3.tgz#62717edd46a318c918125b57e92dc7f8bb71c34c"
+  integrity sha512-uP0bpjWrjQmUt5DTHq9RuoCBdFJF10cdX9X+a368j/Ft0wmaVgxlrjvK3kjvgCODOMMOz9lcaRzxmso0bTWZ/g==
+  dependencies:
+    "@socket.io/component-emitter" "~3.1.0"
+    debug "~4.4.1"
+    engine.io-client "~6.6.1"
+    socket.io-parser "~4.2.4"
+
 socket.io-parser@~4.2.4:
   version "4.2.7"
   resolved "https://registry.yarnpkg.com/socket.io-parser/-/socket.io-parser-4.2.7.tgz#679e51fe24d1c81df90fc5f7efe4a5f432fe99c0"
@@ -5674,6 +5658,11 @@ ws@~8.21.0:
   version "8.21.3"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.21.3.tgz#660b4faddb6a3e575c86e078126919961f4de4fc"
   integrity sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw==
+
+xmlhttprequest-ssl@~2.1.1:
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/xmlhttprequest-ssl/-/xmlhttprequest-ssl-2.1.2.tgz#e9e8023b3f29ef34b97a859f584c5e6c61418e23"
+  integrity sha512-TEU+nJVUUnA4CYJFLvK5X9AOeH4KvDvhIfm0vV1GaQRtchnG0hgK5p8hw/xjv8cunWYCsiPCSDzObPyhEwq3KQ==
 
 y18n@^5.0.5:
   version "5.0.8"
