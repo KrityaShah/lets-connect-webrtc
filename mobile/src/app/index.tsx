@@ -1,98 +1,123 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { RTCView } from 'react-native-webrtc';
+import { useWebRTC } from '../hooks/useWebRTC';
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+const LABELS = {
+  idle: 'Enter a room to start',
+  waiting: 'Waiting for someone to join...',
+  connecting: 'Connecting...',
+  connected: 'Connected',
+  'room-full': 'Room is full',
+} as const;
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+export default function Index() {
+  const [roomId, setRoomId] = useState('room1');
+  const call = useWebRTC();
+  const inCall = call.status !== 'idle' && call.status !== 'room-full';
+
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
-}
+    <View style={styles.container}>
+      {/* Remote video fills the screen; before that, show your own preview. */}
+      {call.remoteStream ? (
+        <RTCView
+          streamURL={call.remoteStream.toURL()}
+          style={StyleSheet.absoluteFill}
+          objectFit="cover"
+        />
+      ) : call.localStream ? (
+        <RTCView
+          streamURL={call.localStream.toURL()}
+          style={StyleSheet.absoluteFill}
+          objectFit="cover"
+          mirror
+        />
+      ) : null}
 
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
+      {call.remoteStream && call.localStream && (
+        <RTCView
+          streamURL={call.localStream.toURL()}
+          style={styles.pip}
+          objectFit="cover"
+          mirror
+          zOrder={1}
+        />
+      )}
 
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
+      <View style={styles.overlay}>
+        <Text style={styles.status}>{call.error ?? LABELS[call.status]}</Text>
 
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+        {!inCall ? (
+          <View style={styles.joinRow}>
+            <TextInput
+              style={styles.input}
+              value={roomId}
+              onChangeText={setRoomId}
+              autoCapitalize="none"
+              placeholder="Room ID"
+              placeholderTextColor="#999"
+            />
+            <Pressable
+              style={[styles.btn, styles.join]}
+              onPress={() => roomId.trim() && call.join(roomId.trim())}
+            >
+              <Text style={styles.btnText}>Join</Text>
+            </Pressable>
+          </View>
+        ) : (
+          <View style={styles.controls}>
+            <Pressable style={styles.btn} onPress={call.toggleMute}>
+              <Text style={styles.btnText}>{call.isMuted ? 'Unmute' : 'Mute'}</Text>
+            </Pressable>
+            <Pressable style={styles.btn} onPress={call.toggleCamera}>
+              <Text style={styles.btnText}>
+                {call.isCameraOff ? 'Cam on' : 'Cam off'}
+              </Text>
+            </Pressable>
+            <Pressable style={styles.btn} onPress={call.switchCamera}>
+              <Text style={styles.btnText}>Flip</Text>
+            </Pressable>
+            <Pressable style={[styles.btn, styles.leave]} onPress={call.leave}>
+              <Text style={styles.btnText}>Leave</Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  container: { flex: 1, backgroundColor: '#000' },
+  pip: {
+    position: 'absolute',
+    top: 56,
+    right: 16,
+    width: 110,
+    height: 160,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  overlay: { flex: 1, justifyContent: 'flex-end', padding: 20, paddingBottom: 48 },
+  status: { color: '#fff', textAlign: 'center', marginBottom: 16, fontSize: 16 },
+  joinRow: { flexDirection: 'row', gap: 10 },
+  input: {
     flex: 1,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    color: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    height: 48,
+  },
+  controls: { flexDirection: 'row', justifyContent: 'center', gap: 10 },
+  btn: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 16,
+    height: 48,
+    borderRadius: 10,
     justifyContent: 'center',
-    flexDirection: 'row',
   },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
+  join: { backgroundColor: '#208AEF' },
+  leave: { backgroundColor: '#E5484D' },
+  btnText: { color: '#fff', fontWeight: '600' },
 });
