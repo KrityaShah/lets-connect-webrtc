@@ -19,3 +19,12 @@ export class IceCandidateDto {
   @IsObject()
   candidate: Record<string, unknown>;
 }
+
+export class CameraToggleDto {
+  @IsString()
+  @IsNotEmpty()
+  to: string;
+
+  @IsBoolean()
+  cameraOff: boolean;
+}

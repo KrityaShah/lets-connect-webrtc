@@ -87,6 +87,14 @@ export class SignalingGateway
     this.relay(client, 'ice-candidate', dto.to, { candidate: dto.candidate });
   }
 
+  @SubscribeMessage('camera-toggle')
+  handleCameraToggle(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() dto: { to: string; cameraOff: boolean },
+  ) {
+    this.relay(client, 'camera-toggle', dto.to, { cameraOff: dto.cameraOff });
+  }
+
   // Only relay between peers that share a room.
   private relay(
     client: Socket,
