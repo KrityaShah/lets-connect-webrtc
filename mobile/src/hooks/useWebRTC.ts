@@ -28,6 +28,8 @@ export function useWebRTC() {
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSpeakerOn, setIsSpeakerOn] = useState(true);
+  const [remoteCameraOff, setRemoteCameraOff] = useState(false);
+  const remoteIdRef = useRef<string | null>(null);
 
   const socketRef = useRef<Socket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -117,6 +119,7 @@ export function useWebRTC() {
           return;
         }
         // We're the joiner, so we create the offer.
+        remoteIdRef.current = peers[0];
         setStatus("connecting");
         const pc = createPeer(peers[0]);
         const offer = await pc.createOffer({});
@@ -128,6 +131,7 @@ export function useWebRTC() {
       });
 
       socket.on("offer", async ({ from, sdp }) => {
+        remoteIdRef.current = from;
         setStatus("connecting");
         const pc = createPeer(from);
         await pc.setRemoteDescription(new RTCSessionDescription(sdp));
@@ -156,8 +160,14 @@ export function useWebRTC() {
         }
       });
 
+      socket.on("camera-toggle", ({ cameraOff }: { cameraOff: boolean }) => {
+        setRemoteCameraOff(cameraOff);
+      });
+
       socket.on("peer-left", () => {
         closePeer();
+        remoteIdRef.current = null;
+        setRemoteCameraOff(false);
         setStatus("waiting");
       });
 
@@ -174,8 +184,10 @@ export function useWebRTC() {
     socketRef.current?.emit("leave-room");
     socketRef.current?.disconnect();
     socketRef.current = null;
+    remoteIdRef.current = null;
     closePeer();
     InCallManager.stop();
+    setRemoteCameraOff(false);
     setStatus("idle");
   }, [closePeer]);
 
@@ -199,6 +211,12 @@ export function useWebRTC() {
       ?.getVideoTracks()
       .forEach((t) => (t.enabled = !next));
     setIsCameraOff(next);
+    if (remoteIdRef.current) {
+      socketRef.current?.emit("camera-toggle", {
+        to: remoteIdRef.current,
+        cameraOff: next,
+      });
+    }
   }, [isCameraOff]);
 
   const switchCamera = useCallback(() => {
@@ -220,5 +238,6 @@ export function useWebRTC() {
     switchCamera,
     isSpeakerOn,
     toggleSpeaker,
+    remoteCameraOff,
   };
 }

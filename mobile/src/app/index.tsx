@@ -19,12 +19,14 @@ export default function Index() {
   return (
     <View style={styles.container}>
       {/* Remote video fills the screen; before that, show your own preview. */}
-      {call.remoteStream ? (
+      {call.remoteStream && !call.remoteCameraOff ? (
         <RTCView
           streamURL={call.remoteStream.toURL()}
           style={StyleSheet.absoluteFill}
           objectFit="cover"
         />
+      ) : call.remoteStream ? (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: "#000" }]} />
       ) : call.localStream ? (
         <RTCView
           streamURL={call.localStream.toURL()}
