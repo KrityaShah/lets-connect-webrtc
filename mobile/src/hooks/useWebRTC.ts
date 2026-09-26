@@ -36,7 +36,6 @@ export function useWebRTC() {
   const localStreamRef = useRef<MediaStream | null>(null);
   const pendingCandidates = useRef<any[]>([]);
 
-  // Camera + mic on mount, so the preview shows before joining.
   useEffect(() => {
     let cancelled = false;
     mediaDevices
@@ -73,7 +72,7 @@ export function useWebRTC() {
       const local = localStreamRef.current;
       local?.getTracks().forEach((track) => pc.addTrack(track, local));
 
-      const p = pc as any; // event typings in react-native-webrtc are loose
+      const p = pc as any;
       p.addEventListener("icecandidate", (e: any) => {
         if (!e.candidate) return;
         socketRef.current?.emit("ice-candidate", {
@@ -118,7 +117,6 @@ export function useWebRTC() {
           setStatus("waiting");
           return;
         }
-        // We're the joiner, so we create the offer.
         remoteIdRef.current = peers[0];
         setStatus("connecting");
         const pc = createPeer(peers[0]);
@@ -156,7 +154,7 @@ export function useWebRTC() {
         if (pc?.remoteDescription) {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
         } else {
-          pendingCandidates.current.push(candidate); // arrived before the offer/answer
+          pendingCandidates.current.push(candidate);
         }
       });
 
@@ -205,17 +203,40 @@ export function useWebRTC() {
     setIsMuted(next);
   }, [isMuted]);
 
+  // const toggleCamera = useCallback(() => {
+  //   const next = !isCameraOff;
+  //   localStreamRef.current
+  //     ?.getVideoTracks()
+  //     .forEach((t) => (t.enabled = !next));
+  //   setIsCameraOff(next);
+  //   if (remoteIdRef.current && socketRef.current) {
+  //     socketRef.current.emit("camera-toggle", {
+  //       to: remoteIdRef.current,
+  //       cameraOff: next,
+  //     });
+  //   } else {
+  //     console.warn("camera-toggle: no remote peer id yet, event not sent");
+  //   }
+  // }, [isCameraOff]);
+
   const toggleCamera = useCallback(() => {
     const next = !isCameraOff;
     localStreamRef.current
       ?.getVideoTracks()
       .forEach((t) => (t.enabled = !next));
     setIsCameraOff(next);
-    if (remoteIdRef.current) {
-      socketRef.current?.emit("camera-toggle", {
+
+    // Cam off -> earpiece (voice-call mode). Cam on -> back to speaker.
+    InCallManager.setForceSpeakerphoneOn(!next);
+    setIsSpeakerOn(!next);
+
+    if (remoteIdRef.current && socketRef.current) {
+      socketRef.current.emit("camera-toggle", {
         to: remoteIdRef.current,
         cameraOff: next,
       });
+    } else {
+      console.warn("camera-toggle: no remote peer id yet, event not sent");
     }
   }, [isCameraOff]);
 

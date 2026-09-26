@@ -27,24 +27,30 @@ export default function Index() {
         />
       ) : call.remoteStream ? (
         <View style={[StyleSheet.absoluteFill, { backgroundColor: "#000" }]} />
-      ) : call.localStream ? (
+      ) : call.localStream && !call.isCameraOff ? (
         <RTCView
           streamURL={call.localStream.toURL()}
           style={StyleSheet.absoluteFill}
           objectFit="cover"
           mirror
         />
+      ) : call.localStream ? (
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: "#000" }]} />
       ) : null}
 
-      {call.remoteStream && call.localStream && (
-        <RTCView
-          streamURL={call.localStream.toURL()}
-          style={styles.pip}
-          objectFit="cover"
-          mirror
-          zOrder={1}
-        />
-      )}
+      {call.remoteStream &&
+        call.localStream &&
+        (call.isCameraOff ? (
+          <View style={[styles.pip, { backgroundColor: "#000" }]} />
+        ) : (
+          <RTCView
+            streamURL={call.localStream.toURL()}
+            style={styles.pip}
+            objectFit="cover"
+            mirror
+            zOrder={1}
+          />
+        ))}
 
       <View style={styles.overlay}>
         <Text style={styles.status}>{call.error ?? LABELS[call.status]}</Text>
