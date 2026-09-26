@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsObject, IsString } from 'class-validator';
+import { IsNotEmpty, IsObject, IsString, IsBoolean } from 'class-validator';
 
 export class OfferDto {
   @IsString()

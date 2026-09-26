@@ -24,7 +24,7 @@ import { RoomsService } from './rooms.service';
 export class SignalingGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
-  @WebSocketServer() server: Server;
+  @WebSocketServer() server: Server | undefined;
   private readonly logger = new Logger(SignalingGateway.name);
 
   constructor(private readonly rooms: RoomsService) {}
@@ -103,6 +103,7 @@ export class SignalingGateway
     payload: Record<string, unknown>,
   ) {
     if (!this.rooms.inSameRoom(client.id, to)) return;
+    if (!this.server) return;
     this.server.to(to).emit(event, { from: client.id, ...payload });
   }
 
@@ -110,6 +111,7 @@ export class SignalingGateway
     const roomId = this.rooms.leave(client.id);
     if (!roomId) return;
     await client.leave(roomId);
+    if (!this.server) return;
     this.server.to(roomId).emit('peer-left', { peerId: client.id });
   }
 }
