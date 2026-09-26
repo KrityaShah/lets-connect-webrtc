@@ -1,31 +1,33 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
+import InCallManager from "react-native-incall-manager";
 import {
+  mediaDevices,
   MediaStream,
   RTCIceCandidate,
   RTCPeerConnection,
   RTCSessionDescription,
-  mediaDevices,
-} from 'react-native-webrtc';
-import { io, Socket } from 'socket.io-client';
-import { SIGNALING_URL } from '../config';
+} from "react-native-webrtc";
+import { io, Socket } from "socket.io-client";
+import { SIGNALING_URL } from "../config";
 
 export type CallStatus =
-  | 'idle'
-  | 'waiting'
-  | 'connecting'
-  | 'connected'
-  | 'room-full';
+  | "idle"
+  | "waiting"
+  | "connecting"
+  | "connected"
+  | "room-full";
 
 // STUN only for now. Add a TURN server before testing across different networks.
-const ICE_SERVERS = [{ urls: 'stun:stun.l.google.com:19302' }];
+const ICE_SERVERS = [{ urls: "stun:stun.l.google.com:19302" }];
 
 export function useWebRTC() {
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null);
-  const [status, setStatus] = useState<CallStatus>('idle');
+  const [status, setStatus] = useState<CallStatus>("idle");
   const [isMuted, setIsMuted] = useState(false);
   const [isCameraOff, setIsCameraOff] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSpeakerOn, setIsSpeakerOn] = useState(true);
 
   const socketRef = useRef<Socket | null>(null);
   const pcRef = useRef<RTCPeerConnection | null>(null);
@@ -36,7 +38,7 @@ export function useWebRTC() {
   useEffect(() => {
     let cancelled = false;
     mediaDevices
-      .getUserMedia({ audio: true, video: { facingMode: 'user' } })
+      .getUserMedia({ audio: true, video: { facingMode: "user" } })
       .then((stream) => {
         if (cancelled) {
           stream.getTracks().forEach((t) => t.stop());
@@ -70,18 +72,18 @@ export function useWebRTC() {
       local?.getTracks().forEach((track) => pc.addTrack(track, local));
 
       const p = pc as any; // event typings in react-native-webrtc are loose
-      p.addEventListener('icecandidate', (e: any) => {
+      p.addEventListener("icecandidate", (e: any) => {
         if (!e.candidate) return;
-        socketRef.current?.emit('ice-candidate', {
+        socketRef.current?.emit("ice-candidate", {
           to: remoteId,
           candidate: e.candidate.toJSON(),
         });
       });
-      p.addEventListener('track', (e: any) => {
+      p.addEventListener("track", (e: any) => {
         if (e.streams?.[0]) setRemoteStream(e.streams[0]);
       });
-      p.addEventListener('connectionstatechange', () => {
-        if (pc.connectionState === 'connected') setStatus('connected');
+      p.addEventListener("connectionstatechange", () => {
+        if (pc.connectionState === "connected") setStatus("connected");
       });
 
       pcRef.current = pc;
@@ -101,49 +103,51 @@ export function useWebRTC() {
       if (socketRef.current || !localStreamRef.current) return;
       setError(null);
 
-      const socket = io(SIGNALING_URL, { transports: ['websocket'] });
+      const socket = io(SIGNALING_URL, { transports: ["websocket"] });
       socketRef.current = socket;
+      InCallManager.start({ media: "video" });
+      InCallManager.setForceSpeakerphoneOn(true);
 
-      socket.on('connect', () => socket.emit('join-room', { roomId }));
-      socket.on('connect_error', (e) => setError(`Signaling: ${e.message}`));
+      socket.on("connect", () => socket.emit("join-room", { roomId }));
+      socket.on("connect_error", (e) => setError(`Signaling: ${e.message}`));
 
-      socket.on('room-joined', async ({ peers }: { peers: string[] }) => {
+      socket.on("room-joined", async ({ peers }: { peers: string[] }) => {
         if (peers.length === 0) {
-          setStatus('waiting');
+          setStatus("waiting");
           return;
         }
         // We're the joiner, so we create the offer.
-        setStatus('connecting');
+        setStatus("connecting");
         const pc = createPeer(peers[0]);
         const offer = await pc.createOffer({});
         await pc.setLocalDescription(offer);
-        socket.emit('offer', {
+        socket.emit("offer", {
           to: peers[0],
           sdp: { type: offer.type, sdp: offer.sdp },
         });
       });
 
-      socket.on('offer', async ({ from, sdp }) => {
-        setStatus('connecting');
+      socket.on("offer", async ({ from, sdp }) => {
+        setStatus("connecting");
         const pc = createPeer(from);
         await pc.setRemoteDescription(new RTCSessionDescription(sdp));
         await flushCandidates(pc);
         const answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        socket.emit('answer', {
+        socket.emit("answer", {
           to: from,
           sdp: { type: answer.type, sdp: answer.sdp },
         });
       });
 
-      socket.on('answer', async ({ sdp }) => {
+      socket.on("answer", async ({ sdp }) => {
         const pc = pcRef.current;
         if (!pc) return;
         await pc.setRemoteDescription(new RTCSessionDescription(sdp));
         await flushCandidates(pc);
       });
 
-      socket.on('ice-candidate', async ({ candidate }) => {
+      socket.on("ice-candidate", async ({ candidate }) => {
         const pc = pcRef.current;
         if (pc?.remoteDescription) {
           await pc.addIceCandidate(new RTCIceCandidate(candidate));
@@ -152,37 +156,48 @@ export function useWebRTC() {
         }
       });
 
-      socket.on('peer-left', () => {
+      socket.on("peer-left", () => {
         closePeer();
-        setStatus('waiting');
+        setStatus("waiting");
       });
 
-      socket.on('room-full', () => {
+      socket.on("room-full", () => {
         socket.disconnect();
         socketRef.current = null;
-        setStatus('room-full');
+        setStatus("room-full");
       });
     },
     [createPeer, closePeer],
   );
 
   const leave = useCallback(() => {
-    socketRef.current?.emit('leave-room');
+    socketRef.current?.emit("leave-room");
     socketRef.current?.disconnect();
     socketRef.current = null;
     closePeer();
-    setStatus('idle');
+    InCallManager.stop();
+    setStatus("idle");
   }, [closePeer]);
+
+  const toggleSpeaker = useCallback(() => {
+    const next = !isSpeakerOn;
+    InCallManager.setForceSpeakerphoneOn(next);
+    setIsSpeakerOn(next);
+  }, [isSpeakerOn]);
 
   const toggleMute = useCallback(() => {
     const next = !isMuted;
-    localStreamRef.current?.getAudioTracks().forEach((t) => (t.enabled = !next));
+    localStreamRef.current
+      ?.getAudioTracks()
+      .forEach((t) => (t.enabled = !next));
     setIsMuted(next);
   }, [isMuted]);
 
   const toggleCamera = useCallback(() => {
     const next = !isCameraOff;
-    localStreamRef.current?.getVideoTracks().forEach((t) => (t.enabled = !next));
+    localStreamRef.current
+      ?.getVideoTracks()
+      .forEach((t) => (t.enabled = !next));
     setIsCameraOff(next);
   }, [isCameraOff]);
 
@@ -203,5 +218,7 @@ export function useWebRTC() {
     toggleMute,
     toggleCamera,
     switchCamera,
+    isSpeakerOn,
+    toggleSpeaker,
   };
 }

@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { RTCView } from 'react-native-webrtc';
-import { useWebRTC } from '../hooks/useWebRTC';
+import { useState } from "react";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { RTCView } from "react-native-webrtc";
+import { useWebRTC } from "../hooks/useWebRTC";
 
 const LABELS = {
-  idle: 'Enter a room to start',
-  waiting: 'Waiting for someone to join...',
-  connecting: 'Connecting...',
-  connected: 'Connected',
-  'room-full': 'Room is full',
+  idle: "Enter a room to start",
+  waiting: "Waiting for someone to join...",
+  connecting: "Connecting...",
+  connected: "Connected",
+  "room-full": "Room is full",
 } as const;
 
 export default function Index() {
-  const [roomId, setRoomId] = useState('room1');
+  const [roomId, setRoomId] = useState("room1");
   const call = useWebRTC();
-  const inCall = call.status !== 'idle' && call.status !== 'room-full';
+  const inCall = call.status !== "idle" && call.status !== "room-full";
 
   return (
     <View style={styles.container}>
@@ -67,11 +67,13 @@ export default function Index() {
         ) : (
           <View style={styles.controls}>
             <Pressable style={styles.btn} onPress={call.toggleMute}>
-              <Text style={styles.btnText}>{call.isMuted ? 'Unmute' : 'Mute'}</Text>
+              <Text style={styles.btnText}>
+                {call.isMuted ? "Unmute" : "Mute"}
+              </Text>
             </Pressable>
             <Pressable style={styles.btn} onPress={call.toggleCamera}>
               <Text style={styles.btnText}>
-                {call.isCameraOff ? 'Cam on' : 'Cam off'}
+                {call.isCameraOff ? "Cam on" : "Cam off"}
               </Text>
             </Pressable>
             <Pressable style={styles.btn} onPress={call.switchCamera}>
@@ -79,6 +81,11 @@ export default function Index() {
             </Pressable>
             <Pressable style={[styles.btn, styles.leave]} onPress={call.leave}>
               <Text style={styles.btnText}>Leave</Text>
+            </Pressable>
+            <Pressable style={styles.btn} onPress={call.toggleSpeaker}>
+              <Text style={styles.btnText}>
+                {call.isSpeakerOn ? "Speaker" : "Earpiece"}
+              </Text>
             </Pressable>
           </View>
         )}
@@ -88,36 +95,46 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#000' },
+  container: { flex: 1, backgroundColor: "#000" },
   pip: {
-    position: 'absolute',
+    position: "absolute",
     top: 56,
     right: 16,
     width: 110,
     height: 160,
     borderRadius: 12,
-    overflow: 'hidden',
+    overflow: "hidden",
   },
-  overlay: { flex: 1, justifyContent: 'flex-end', padding: 20, paddingBottom: 48 },
-  status: { color: '#fff', textAlign: 'center', marginBottom: 16, fontSize: 16 },
-  joinRow: { flexDirection: 'row', gap: 10 },
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+    padding: 20,
+    paddingBottom: 48,
+  },
+  status: {
+    color: "#fff",
+    textAlign: "center",
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  joinRow: { flexDirection: "row", gap: 10 },
   input: {
     flex: 1,
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    color: '#fff',
+    backgroundColor: "rgba(255,255,255,0.15)",
+    color: "#fff",
     borderRadius: 10,
     paddingHorizontal: 14,
     height: 48,
   },
-  controls: { flexDirection: 'row', justifyContent: 'center', gap: 10 },
+  controls: { flexDirection: "row", justifyContent: "center", gap: 10 },
   btn: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: "rgba(255,255,255,0.2)",
     paddingHorizontal: 16,
     height: 48,
     borderRadius: 10,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
-  join: { backgroundColor: '#208AEF' },
-  leave: { backgroundColor: '#E5484D' },
-  btnText: { color: '#fff', fontWeight: '600' },
+  join: { backgroundColor: "#208AEF" },
+  leave: { backgroundColor: "#E5484D" },
+  btnText: { color: "#fff", fontWeight: "600" },
 });
