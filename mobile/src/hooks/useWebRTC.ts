@@ -100,11 +100,14 @@ export function useWebRTC() {
   };
 
   const join = useCallback(
-    (roomId: string) => {
+    (roomId: string, accessToken: string) => {
       if (socketRef.current || !localStreamRef.current) return;
       setError(null);
 
-      const socket = io(SIGNALING_URL, { transports: ["websocket"] });
+      const socket = io(SIGNALING_URL, {
+        transports: ["websocket"],
+        auth: { token: accessToken },
+      });
       socketRef.current = socket;
       InCallManager.start({ media: "video" });
       InCallManager.setForceSpeakerphoneOn(true);
@@ -202,22 +205,6 @@ export function useWebRTC() {
       .forEach((t) => (t.enabled = !next));
     setIsMuted(next);
   }, [isMuted]);
-
-  // const toggleCamera = useCallback(() => {
-  //   const next = !isCameraOff;
-  //   localStreamRef.current
-  //     ?.getVideoTracks()
-  //     .forEach((t) => (t.enabled = !next));
-  //   setIsCameraOff(next);
-  //   if (remoteIdRef.current && socketRef.current) {
-  //     socketRef.current.emit("camera-toggle", {
-  //       to: remoteIdRef.current,
-  //       cameraOff: next,
-  //     });
-  //   } else {
-  //     console.warn("camera-toggle: no remote peer id yet, event not sent");
-  //   }
-  // }, [isCameraOff]);
 
   const toggleCamera = useCallback(() => {
     const next = !isCameraOff;
