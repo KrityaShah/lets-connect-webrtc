@@ -7,6 +7,8 @@ import { SignalingModule } from './signaling/signaling.module';
 import { OtpModule } from './otp/otp.module';
 import { OtpService } from './otp.service';
 import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { UsersModule } from './users/users.module';
     SignalingModule,
     OtpModule,
     UsersModule,
+    AuthModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService, OtpService],

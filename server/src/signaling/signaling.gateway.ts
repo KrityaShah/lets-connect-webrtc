@@ -1,4 +1,5 @@
-import { Logger, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Logger, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -9,11 +10,22 @@ import {
   WebSocketServer,
   WsException,
 } from '@nestjs/websockets';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { Server, Socket } from 'socket.io';
+import { UsersService } from '../users/users.service';
+import { WsAuthGuard } from '../auth/guards/ws-auth.guard';
 import { JoinRoomDto } from './dto/join-room.dto';
 import { AnswerDto, IceCandidateDto, OfferDto } from './dto/signal.dto';
 import { RoomsService } from './rooms.service';
 
+interface AuthenticatedSocket extends Socket {
+  data: {
+    user: { id: string; email: string; displayName: string };
+  };
+}
+
+@UseGuards(WsAuthGuard)
 @WebSocketGateway({ cors: { origin: '*' } })
 @UsePipes(
   new ValidationPipe({
@@ -27,20 +39,54 @@ export class SignalingGateway
   @WebSocketServer() server: Server | undefined;
   private readonly logger = new Logger(SignalingGateway.name);
 
-  constructor(private readonly rooms: RoomsService) {}
+  constructor(
+    private readonly rooms: RoomsService,
+    private readonly jwtService: JwtService,
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  handleConnection(client: Socket) {
-    this.logger.log(`connected ${client.id}`);
+  // WsAuthGuard only runs on @SubscribeMessage handlers, not on the raw
+  // connection itself — so we also verify here to reject bad tokens
+  // immediately instead of waiting for the client's first message.
+  async handleConnection(client: AuthenticatedSocket) {
+    try {
+      const token =
+        (client.handshake.auth?.token as string | undefined) ??
+        (client.handshake.headers?.authorization as string | undefined)?.split(
+          ' ',
+        )[1];
+
+      if (!token) throw new UnauthorizedException('Missing auth token');
+
+      const payload = this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+      });
+
+      const user = await this.usersService.findById(payload.sub);
+      if (!user) throw new UnauthorizedException('User not found');
+
+      client.data.user = {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+      };
+
+      this.logger.log(`connected ${client.id} (user ${user.id})`);
+    } catch {
+      this.logger.warn(`rejected connection ${client.id}: bad token`);
+      client.disconnect(true);
+    }
   }
 
-  async handleDisconnect(client: Socket) {
+  async handleDisconnect(client: AuthenticatedSocket) {
     this.logger.log(`disconnected ${client.id}`);
     await this.leaveRoom(client);
   }
 
   @SubscribeMessage('join-room')
   async handleJoin(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() dto: JoinRoomDto,
   ) {
     await this.leaveRoom(client); // one room at a time
@@ -58,22 +104,28 @@ export class SignalingGateway
       selfId: client.id,
       peers: result.peers,
     });
-    client.to(dto.roomId).emit('peer-joined', { peerId: client.id });
+    client.to(dto.roomId).emit('peer-joined', {
+      peerId: client.id,
+      user: client.data.user,
+    });
   }
 
   @SubscribeMessage('leave-room')
-  async handleLeave(@ConnectedSocket() client: Socket) {
+  async handleLeave(@ConnectedSocket() client: AuthenticatedSocket) {
     await this.leaveRoom(client);
   }
 
   @SubscribeMessage('offer')
-  handleOffer(@ConnectedSocket() client: Socket, @MessageBody() dto: OfferDto) {
+  handleOffer(
+    @ConnectedSocket() client: AuthenticatedSocket,
+    @MessageBody() dto: OfferDto,
+  ) {
     this.relay(client, 'offer', dto.to, { sdp: dto.sdp });
   }
 
   @SubscribeMessage('answer')
   handleAnswer(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() dto: AnswerDto,
   ) {
     this.relay(client, 'answer', dto.to, { sdp: dto.sdp });
@@ -81,7 +133,7 @@ export class SignalingGateway
 
   @SubscribeMessage('ice-candidate')
   handleIce(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() dto: IceCandidateDto,
   ) {
     this.relay(client, 'ice-candidate', dto.to, { candidate: dto.candidate });
@@ -89,7 +141,7 @@ export class SignalingGateway
 
   @SubscribeMessage('camera-toggle')
   handleCameraToggle(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() dto: { to: string; cameraOff: boolean },
   ) {
     this.relay(client, 'camera-toggle', dto.to, { cameraOff: dto.cameraOff });
@@ -97,7 +149,7 @@ export class SignalingGateway
 
   // Only relay between peers that share a room.
   private relay(
-    client: Socket,
+    client: AuthenticatedSocket,
     event: string,
     to: string,
     payload: Record<string, unknown>,
@@ -107,7 +159,7 @@ export class SignalingGateway
     this.server.to(to).emit(event, { from: client.id, ...payload });
   }
 
-  private async leaveRoom(client: Socket) {
+  private async leaveRoom(client: AuthenticatedSocket) {
     const roomId = this.rooms.leave(client.id);
     if (!roomId) return;
     await client.leave(roomId);
