@@ -31,6 +31,23 @@
 $ yarn install
 ```
 
+## Database (Postgres)
+
+Start Postgres locally with:
+
+\`\`\`bash
+docker run -d \
+  --name lets-connect-postgres \
+  -e POSTGRES_USER=letsconnect \
+  -e POSTGRES_PASSWORD=letsconnect \
+  -e POSTGRES_DB=letsconnect \
+  -p 5432:5432 \
+  -v letsconnect_pgdata:/var/lib/postgresql/data \
+  postgres:16-alpine
+\`\`\`
+
+Then copy `server/.env.example` to `server/.env` and fill in `DATABASE_URL`.
+
 ## Compile and run the project
 
 ```bash
