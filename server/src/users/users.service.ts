@@ -24,4 +24,15 @@ export class UsersService {
   markVerified(id: string) {
     return this.userRepo.update(id, { isVerified: true });
   }
+
+  findPublicByEmail(email: string) {
+    return this.userRepo.findOne({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        displayName: true,
+      },
+    });
+  }
 }
