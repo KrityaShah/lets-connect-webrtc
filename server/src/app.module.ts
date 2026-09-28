@@ -5,11 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SignalingModule } from './signaling/signaling.module';
 import { OtpModule } from './otp/otp.module';
-import { OtpService } from './otp.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { MailModule } from './mail/mail.module';
 import { ChatroomsModule } from './chatrooms/chatrooms.module';
+import { ChatModule } from './chat/chat.module';
 
 @Module({
   imports: [
@@ -33,8 +33,9 @@ import { ChatroomsModule } from './chatrooms/chatrooms.module';
     AuthModule,
     MailModule,
     ChatroomsModule,
+    ChatModule,
   ],
   controllers: [AppController],
-  providers: [AppService, OtpService],
+  providers: [AppService],
 })
 export class AppModule {}

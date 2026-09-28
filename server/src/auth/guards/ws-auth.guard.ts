@@ -22,7 +22,9 @@ export class WsAuthGuard implements CanActivate {
 
     const token =
       (client.handshake.auth?.token as string | undefined) ??
-      (client.handshake.headers?.authorization as string | undefined)?.split(' ')[1];
+      (client.handshake.headers?.authorization as string | undefined)?.split(
+        ' ',
+      )[1];
 
     if (!token) {
       throw new UnauthorizedException('Missing auth token');
@@ -36,8 +38,13 @@ export class WsAuthGuard implements CanActivate {
       const user = await this.usersService.findById(payload.sub);
       if (!user) throw new UnauthorizedException('User not found');
 
-      // Attach the user to the socket itself, since WS has no per-request object like HTTP does.
-      (client as Socket & { user: typeof user }).user = user;
+      // Keep only the fields gateway handlers need. Socket data may be emitted
+      // to other connected clients, so never retain the full user entity here.
+      client.data.user = {
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName,
+      };
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired access token');

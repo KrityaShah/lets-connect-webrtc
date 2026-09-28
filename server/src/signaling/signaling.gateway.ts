@@ -106,7 +106,10 @@ export class SignalingGateway
     });
     client.to(dto.roomId).emit('peer-joined', {
       peerId: client.id,
-      user: client.data.user,
+      user: {
+        id: client.data.user.id,
+        displayName: client.data.user.displayName,
+      },
     });
   }
 
