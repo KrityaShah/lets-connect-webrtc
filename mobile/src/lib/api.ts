@@ -55,6 +55,14 @@ export interface PublicUser {
   displayName: string;
 }
 
+export interface MessageDto {
+  id: string;
+  chatroomId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+}
+
 export const api = {
   register: (email: string, password: string, displayName: string) =>
     request<{ message: string }>('/auth/register', { email, password, displayName }),
@@ -85,4 +93,11 @@ export const api = {
 
   listChatrooms: (accessToken: string) =>
     authedRequest<{ chatrooms: ChatroomDto[] }>('GET', '/chatrooms', accessToken),
+
+  getMessages: (chatroomId: string, accessToken: string) =>
+    authedRequest<{ messages: MessageDto[] }>(
+      'GET',
+      `/chat/${chatroomId}/messages`,
+      accessToken,
+    ),
 };
